@@ -1,4 +1,4 @@
-# kijiji
+# Kijiji Scraper App
 
 ## Project setup
 ```

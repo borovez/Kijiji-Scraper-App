@@ -3,6 +3,45 @@ const Kijiji = require("kijiji-scraper");
 // initial state
 export const state = {
   tabs: [],
+  sortBy: [
+    { label: "Low Price First", value: "priceAsc" },
+    { label: "High Price First", value: "priceDsc" },
+    { label: "Date Ascending", value: "dateAsc" },
+    { label: "Date Descending", value: "dateDsc" }
+  ],
+  updateIntervals: [
+    { label: "Every 5 Minutes", value: 5 },
+    { label: "Every 10 Minutes", value: 10 },
+    { label: "Every 30 Minutes", value: 30 },
+    { label: "Every Hour", value: 60 },
+    { label: "Once a Day", value: 60 * 24 }
+  ],
+  locations: [
+    {
+      label: "GTA",
+      value: Kijiji.locations.ONTARIO.TORONTO_GTA.id
+    },
+    {
+      label: "City of Toronto",
+      value: Kijiji.locations.ONTARIO.TORONTO_GTA.CITY_OF_TORONTO.id
+    },
+    {
+      label: "Markham / York Region",
+      value: Kijiji.locations.ONTARIO.TORONTO_GTA.MARKHAM_YORK_REGION.id
+    },
+    {
+      label: "Mississauga / Peel Region",
+      value: Kijiji.locations.ONTARIO.TORONTO_GTA.MISSISSAUGA_PEEL_REGION.id
+    },
+    {
+      label: "Oakville / Halton Region",
+      value: Kijiji.locations.ONTARIO.TORONTO_GTA.OAKVILLE_HALTON_REGION.id
+    },
+    {
+      label: "Oshawa / Duham Region",
+      value: Kijiji.locations.ONTARIO.TORONTO_GTA.OSHAWA_DURHAM_REGION.id
+    }
+  ],
 };
 
 // getters
@@ -43,7 +82,7 @@ export const actions = {
       console.log("fetching...")
 
       let options = {
-        // minResults: 40
+        minResults: 60
       };
 
       let params = {
@@ -60,15 +99,13 @@ export const actions = {
         .then(function (ads) {
           tab.lastRun = Object.assign({}, tab);
           commit("SET_ADS", { tab: tab, ads: ads });
+          commit("SET_LASTUPDATE", { tab: tab });
         })
         .catch(error => {
-          console.log(error);
           reject(error);
         })
         .then(res => {
-          commit("SET_LASTUPDATE", { tab: tab });
           commit("SET_ISLOADING", { tab: tab, isLoading: false });
-          // console.log(tab);
           resolve(res);
         });
     });

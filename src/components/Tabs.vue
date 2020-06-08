@@ -21,7 +21,7 @@
                         },
                       }"
         >
-          <div class="handle transform rotate-90 absolute left-0  cursor-move">
+          <div class="handle transform rotate-90 absolute left-0 cursor-move">
             <svg class="svg-icon w-6 h-6" viewBox="0 0 20 20">
               <path
                 fill="red"
@@ -94,8 +94,23 @@
             />
           </div>
         </li>
-        <li class="p-4 box-content flex items-center">
-          <svg class="svg-icon w-6 h-6 cursor-pointer" viewBox="0 0 20 20" @click="addTab">
+        <li
+          class="p-4 box-content flex items-center cursor-pointer hover:bg-gray-300"
+          @click="addTab"
+          v-tooltip="{
+            content: 'Add New Tab',
+            trigger: 'hover',
+            placement: 'bottom-start',
+            popperOptions: {
+              modifiers: {
+                preventOverflow: {
+                  boundariesElement: 'offsetParent',
+                },
+              },
+            },
+          }"
+        >
+          <svg class="svg-icon w-6 h-6" viewBox="0 0 20 20">
             <path
               fill="none"
               d="M13.68,9.448h-3.128V6.319c0-0.304-0.248-0.551-0.552-0.551S9.448,6.015,9.448,6.319v3.129H6.319
@@ -110,8 +125,28 @@
       </draggable>
       <div class="absolute bottom-0 left-0 w-full border-b-2 z-0"></div>
     </div>
-    <div class="tabs-details" v-if="tabs" ref="tabsContainer">
-      <tab v-for="(tab,i) in tabs" :key="`tab-details-${i}`" :id="tab.id" :index="i" ref="tabs"></tab>
+    <div class="relative min-h-screen min-w-screen">
+      <div class="tabs-details pt-16" v-if="tabs.length" ref="tabsContainer">
+        <tab v-for="(tab,i) in tabs" :key="`tab-details-${i}`" :id="tab.id" :index="i" ref="tabs"></tab>
+      </div>
+      <div class="absolute w-full h-full pt-16" v-else>
+        <div class="flex flex-col justify-center items-center w-full h-full p-6">
+          <div class="text-4xl text-gray-500 mb-5 cursor-pointer" @click="addTab">
+            <svg class="svg-icon w-16 h-16" viewBox="0 0 20 20">
+              <path
+                fill="none"
+                d="M13.68,9.448h-3.128V6.319c0-0.304-0.248-0.551-0.552-0.551S9.448,6.015,9.448,6.319v3.129H6.319
+								c-0.304,0-0.551,0.247-0.551,0.551s0.247,0.551,0.551,0.551h3.129v3.129c0,0.305,0.248,0.551,0.552,0.551s0.552-0.246,0.552-0.551
+								v-3.129h3.128c0.305,0,0.552-0.247,0.552-0.551S13.984,9.448,13.68,9.448z M10,0.968c-4.987,0-9.031,4.043-9.031,9.031
+								c0,4.989,4.044,9.032,9.031,9.032c4.988,0,9.031-4.043,9.031-9.032C19.031,5.012,14.988,0.968,10,0.968z M10,17.902
+								c-4.364,0-7.902-3.539-7.902-7.903c0-4.365,3.538-7.902,7.902-7.902S17.902,5.635,17.902,10C17.902,14.363,14.364,17.902,10,17.902
+								z"
+              />
+            </svg>
+          </div>
+          <div class="text-4xl text-gray-500 pointer-events-none">Add a new tab to begin</div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -138,9 +173,7 @@ export default {
         return this.$store.getters["tabs/tabs"];
       },
       set(value) {
-        console.log(value);
         this.REORDER_TABS({ tabs: value });
-        // this.$store.commit("reorderTabs", value);
       }
     },
     ...mapState({
@@ -186,15 +219,15 @@ export default {
       let self = this;
 
       this.ADD_TAB({
-        name: `New Tab`,
+        name: 'New Tab',
         selected: self.tabs.length == 0,
         isActive: self.tabs.length == 0,
         isLoading: false,
         editing: false,
-        keywords: "1070+gtx",
+        keywords: '',
         locationId: 1700272,
         categoryId: 0,
-        sortByName: "priceAsc",
+        sortByName: "dateDsc",
         lastUpdate: null,
         updateInterval: 5,
         ads: []

@@ -1,8 +1,8 @@
 <template>
-  <div v-show="tab.isActive" :id="`tab-content-${tab.id}`" class="mt-16">
+  <div v-show="tab.isActive" :id="`tab-content-${tab.id}`">
     <div class="flex flex-row min-w-full items-stretch">
       <div
-        class="sidebar flex-initial bg-white border-r-2 z-50 h-auto overflow-y-auto"
+        class="sidebar flex-none bg-white border-r-2 z-50 h-auto overflow-y-auto"
         :class="{'open':sidebarOpen}"
       >
         <div class="flex flex-row bg-white h-16 border-b-2 items-center">
@@ -19,15 +19,15 @@
               <strong>Last Updated:&nbsp;</strong>
               <em>{{tab.lastUpdate | moment("MMM/DD/YY H:mm")}}</em>
             </div>
-            <div v-if="duration" class="text-sm text-left flex-initial">
+            <div v-if="duration != null && duration > 0" class="text-sm text-left flex-initial">
               <strong>Next Update:&nbsp;</strong>
               <em>{{ time }}</em>
             </div>
           </div>
           <button
             class="p-2 bg-gray-200 flex justify-center items-center ml-3 hover:bg-gray-300 rounded-full mr-3 md:mr-0"
-            :class="{'cursor-not-allowed' : tab.isLoading}"
-            @click="forceUpdate"
+            :class="{'pointer-events-none' : tab.isLoading, 'pointer-events-none opacity-50' : !tab.keywords}"
+            @click="update"
             v-tooltip="{
                         content: 'Force Update',
                         trigger: 'hover',
@@ -65,8 +65,8 @@
           </div>
           <div class="border-b-2 w-full my-3"></div>
 
-          <!-- @keyup.enter="forceUpdate" -->
-          <form @change="saveParams" @keyup.enter="forceUpdate">
+          <!-- @keyup.enter="update" -->
+          <form @change="saveParams" @keyup.enter="update">
             <label class="block mb-5" @click="$refs.tabname.focus()">
               <div class="mb-3 text-sm font-bold">Name:</div>
               <input
@@ -92,7 +92,7 @@
                 v-model="tab.sortByName"
                 class="font-medium text-lg px-3 py-2 block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 pr-8 rounded shadow-sm leading-tight focus:outline-none focus:shadow-outline"
                 @change="saveParams"
-                @keyup.enter="forceUpdate"
+                @keyup.enter="update"
               >
                 <option
                   v-for="(sort, i) in sortBy"
@@ -123,7 +123,7 @@
                 v-model="tab.sortByName"
                 class="select"
                 :reduce="label => label.value"
-                :options="sortBy"
+                :options="$store.state.tabs.sortBy"
                 :filterable="false"
                 @input="saveParams();"
                 :clearable="false"
@@ -139,7 +139,7 @@
                 class="select"
                 :reduce="label => label.value"
                 @input="saveParams();"
-                :options="locations"
+                :options="$store.state.tabs.locations"
                 :clearable="false"
                 :filterable="false"
                 :searchable="false"
@@ -153,7 +153,7 @@
                 v-model="tab.updateInterval"
                 class="select"
                 :reduce="label => label.value"
-                :options="updateIntervals"
+                :options="$store.state.tabs.updateIntervals"
                 :filterable="false"
                 @input="saveParams(); calcNextUpdate();"
                 :clearable="false"
@@ -195,23 +195,28 @@
           </form>
         </div>
       </div>
-      <div class="flex-1 bg-gray-200">
         <div class="h-header overflow-auto relative" ref="scroll">
           <div
-            class="bg-white h-16 shadow-sm w-auto border-b-2 text-left text-gray-600 absolute w-full z-10 top-0 overflow-y-auto sticky flex items-center relative"
+            class="bg-white h-16 shadow-sm w-auto border-b-2 text-left text-gray-600 absolute w-full z-10 top-0 overflow-y-hidden sticky flex items-center relative"
           >
-           <button class="md:hidden p-2 border-r-2 fixed bg-white left-0 flex items-center justify-center pl-5 pr-5" @click="sidebarOpen = !sidebarOpen">
-                  <svg class="svg-icon h-6 w-6" viewBox="0 0 20 20">
-                    <path
-                      fill="none"
-                      d="M3.314,4.8h13.372c0.41,0,0.743-0.333,0.743-0.743c0-0.41-0.333-0.743-0.743-0.743H3.314
+            <button
+              class="md:hidden p-2 border-r-2 sticky bg-white left-0 flex items-center justify-center pl-5 pr-5 h-16"
+              @click="sidebarOpen = !sidebarOpen"
+            >
+              <svg class="svg-icon h-6 w-6" viewBox="0 0 20 20">
+                <path
+                  fill="none"
+                  d="M3.314,4.8h13.372c0.41,0,0.743-0.333,0.743-0.743c0-0.41-0.333-0.743-0.743-0.743H3.314
 								c-0.41,0-0.743,0.333-0.743,0.743C2.571,4.467,2.904,4.8,3.314,4.8z M16.686,15.2H3.314c-0.41,0-0.743,0.333-0.743,0.743
 								s0.333,0.743,0.743,0.743h13.372c0.41,0,0.743-0.333,0.743-0.743S17.096,15.2,16.686,15.2z M16.686,9.257H3.314
 								c-0.41,0-0.743,0.333-0.743,0.743s0.333,0.743,0.743,0.743h13.372c0.41,0,0.743-0.333,0.743-0.743S17.096,9.257,16.686,9.257z"
-                    />
-                  </svg>
-                </button>
-            <ul class="p-3 flex items-center overflow-x-auto  pl-16  md:pl-3 " style="min-width:max-content">
+                />
+              </svg>
+            </button>
+            <ul
+              class="p-3 flex items-center overflow-x-auto"
+              style="min-width:max-content"
+            >
               <!-- <li>
                 <button class="md:hidden p-2" @click="sidebarOpen = !sidebarOpen">
                   <svg class="svg-icon h-6 w-6" viewBox="0 0 20 20">
@@ -224,30 +229,32 @@
                     />
                   </svg>
                 </button>
-              </li> -->
+              </li>-->
               <li
                 class="mx-1 bg-gray-200 rounded-full px-3 py-1 mr-5 box-content flex-none"
               >Records: {{ads.length}}</li>
               <template v-if="tab.lastRun">
                 <li class>Parameters:</li>
                 <li
+                  v-show="tab.lastRun.keywords"
                   class="mx-1 bg-gray-200 rounded-full px-3 py-1 box-content flex-none"
                 >{{tab.lastRun.keywords}}</li>
                 <li
+                  v-show="tab.lastRun.sortByName"
                   class="mx-1 bg-gray-200 rounded-full px-3 py-1 box-content flex-none"
-                >{{sortBy.find(x=> x.value ==tab.lastRun.sortByName).label}}</li>
+                >{{$store.state.tabs.sortBy.find(x=> x.value == tab.lastRun.sortByName).label}}</li>
                 <li
+                  v-show="tab.lastRun.locationId"
                   class="mx-1 bg-gray-200 rounded-full px-3 py-1 box-content flex-none"
-                >{{locations.find(x=> x.value ==tab.lastRun.locationId).label}}</li>
+                >{{$store.state.tabs.locations.find(x=> x.value ==tab.lastRun.locationId).label}}</li>
               </template>
             </ul>
           </div>
 
-          <div class="py-10 px-6">
-            <card v-show="ads" v-for="(ad, i) in ads" :key="`ad-${i}`" :ad="ad"/>
+          <div class="p-6 pb-32 bg-gray-200">
+            <card v-show="ads" v-for="(ad, i) in ads" :key="`ad-${i}`" :ad="ad" />
           </div>
         </div>
-      </div>
     </div>
     <scrolltop :element="$refs.scroll" />
   </div>
@@ -279,60 +286,19 @@ export default {
       current: 0,
       sidebarOpen: false,
       isToggleOn: true,
-      sortBy: [
-        { label: "Low Price First", value: "priceAsc" },
-        { label: "High Price First", value: "priceDesc" },
-        { label: "Date Ascending", value: "dateAsc" },
-        { label: "Date Descending", value: "dateDesc" }
-      ],
-      updateIntervals: [
-        { label: "Every 5 Minutes", value: 5 },
-        { label: "Every 10 Minutes", value: 10 },
-        { label: "Every 30 Minutes", value: 30 },
-        { label: "Every Hour", value: 60 },
-        { label: "Once a Day", value: 60 * 24 }
-      ],
-      locations: [
-        {
-          label: "GTA",
-          value: kijiji.locations.ONTARIO.TORONTO_GTA.id
-        },
-        {
-          label: "City of Toronto",
-          value: kijiji.locations.ONTARIO.TORONTO_GTA.CITY_OF_TORONTO.id
-        },
-        {
-          label: "Markham / York Region",
-          value: kijiji.locations.ONTARIO.TORONTO_GTA.MARKHAM_YORK_REGION.id
-        },
-        {
-          label: "Mississauga / Peel Region",
-          value: kijiji.locations.ONTARIO.TORONTO_GTA.MISSISSAUGA_PEEL_REGION.id
-        },
-        {
-          label: "Oakville / Halton Region",
-          value: kijiji.locations.ONTARIO.TORONTO_GTA.OAKVILLE_HALTON_REGION.id
-        },
-        {
-          label: "Oshawa / Duham Region",
-          value: kijiji.locations.ONTARIO.TORONTO_GTA.OSHAWA_DURHAM_REGION.id
-        }
-      ],
       diffTime: 0,
-      duration: 0
+      duration: null
     };
   },
   computed: {
     allLocations() {
-      console.log(kijiji.locations);
       return kijiji.locations;
     },
     allCategories() {
-      console.log(kijiji.categories);
       return kijiji.categories;
     },
     time() {
-      var str = "NOW";
+      var str = "";
 
       if (this.duration.isValid()) {
         str = this.duration.hours() > 0 ? this.duration.hours() + " hr. " : "";
@@ -346,29 +312,21 @@ export default {
     tab() {
       return this.$store.getters["tabs/tab"](this.id);
     },
-    ads(){
-
-      if(this.tab.isWantedVisible) {
+    ads() {
+      if (this.tab.isWantedVisible) {
         return this.tab.ads;
-      }else{
+      } else {
         return this.tab.ads.filter(ad => ad.attributes.type !== "WANTED");
       }
     }
   },
   mounted() {
-    let self = this;
     this.allLocations;
     this.allCategories;
 
-    this.calcNextUpdate();
+    if (!this.tab.lastUpdate) return;
 
-    this.nextUpdateInterval = setInterval(() => {
-      if (!self.duration.isValid() || self.duration <= 0) {
-        self.update();
-      } else {
-        self.duration = moment.duration(self.duration - 1000, "milliseconds");
-      }
-    }, 1000);
+    this.setNextUpdateInterval();
   },
 
   methods: {
@@ -376,6 +334,21 @@ export default {
     saveParams() {
       this.tab.editing = false;
       this.SAVE();
+    },
+    setNextUpdateInterval: function() {
+      let self = this;
+
+      this.calcNextUpdate();
+
+      this.nextUpdateInterval = setInterval(() => {
+        if (
+          self.duration && (!self.duration.isValid() || self.duration <= 0)
+        ) {
+          self.update();
+        } else {
+          self.duration = moment.duration(self.duration - 1000, "milliseconds");
+        }
+      }, 1000);
     },
     calcNextUpdate: function() {
       if (this.tab) {
@@ -390,38 +363,28 @@ export default {
         this.diffTime = this.event.diff(this.current);
         // let moment.js make the duration out of the timestamp
         this.duration = moment.duration(this.diffTime, "milliseconds", true);
+
+        this.nextUpdate = this.updateInterval;
       }
       if (this.duration < 0) {
         this.duration = 0;
       }
     },
     ...mapActions("tabs", ["FETCH_ADS"]),
-    forceUpdate: function() {
-      let self = this;
-
-      this.FETCH_ADS({ tabID: self.tab.id })
-        .then()
-        .catch(error => {
-          self.$toast.open({
-            message: `<div class="text-lg font-medium">${self.tab.name}</div>${error}`,
-            type: "error",
-            position: "bottom",
-            duration: 10000
-          });
-        })
-        .then(() => {
-          self.calcNextUpdate();
-        });
-    },
     update: function() {
       let self = this;
 
-      if (this.tab.isLoading) {
-        return;
-      }
-      this.nextUpdate = this.updateInterval;
+      if (this.tab.isLoading) return;
+      if (this.tab.keywords == "") return;
+
       this.FETCH_ADS({ tabID: self.tab.id })
-        .then()
+        .then(() => {
+          if (self.nextUpdateInterval == null) {
+            self.setNextUpdateInterval();
+          }else{
+            this.calcNextUpdate();
+          }
+        })
         .catch(error => {
           self.$toast.open({
             message: `<div class="text-lg font-medium">${self.tab.name}</div>${error}`,
@@ -430,9 +393,7 @@ export default {
             duration: 10000
           });
         })
-        .then(() => {
-          self.calcNextUpdate();
-        });
+        .then();
     }
   },
   beforeDestroy() {

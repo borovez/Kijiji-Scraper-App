@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <!-- <div class="container mx-auto"> -->
-    <tabs />
+    <tabs class="bg-gray-200" />
     <!-- </div> -->
   </div>
 </template>

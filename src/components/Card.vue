@@ -1,6 +1,6 @@
 <template>
-  <div class="mb-6">
-    <div class="bg-white mx-auto shadow-md rounded-t-lg flex flex-row">
+  <div class="border-b">
+    <div class="bg-white mx-auto shadow-md flex flex-row">
       <div class="hidden sm:block p-3 pr-0">
         <div
           class="bg-gray-100 flex-none relative overflow-hidden mb-0 rounded-lg w-32 h-32 border flex items-center justify-center"
@@ -26,7 +26,7 @@
         style="z-index:100000"
         class="fixed inset-0 justify-center items-center z-50 m-auto p-6 max-h-full max-w-full cursor-pointer"
       />
-      <div class="sm:flex sm:items-start p-3  flex-1">
+      <div class="sm:flex sm:items-start p-3 flex-1">
         <div class="text-left sm:flex-grow">
           <div class="relative flex flex-row min-w-full justify-between">
             <div>
@@ -39,10 +39,12 @@
               class="text-md leading-tight text-black font-bold w-auto rounded-full bg-gray-200 py-1 px-2 mx-3"
             >{{ad.attributes.type}}</span>
             <div class="flex flex-row p-3 pl-0">
-              <div title="Visits"
+              <div
+                title="Visits"
                 class="text-md leading-tight text-black font-bold py-1 px-2 mr-3 text-center rounded-full bg-gray-200"
               >{{ad.attributes.visits ? ad.attributes.visits : 0}}</div>
-              <div title="Age"
+              <div
+                title="Age"
                 class="text-md leading-tight text-black font-bold py-1 px-2 text-center rounded-full bg-gray-200"
               >{{adAge}}</div>
             </div>
@@ -69,39 +71,31 @@
           </a>
           <p class="text-sm leading-tight text-gray-500">{{ad.date | moment("dddd, MMMM Do YYYY")}}</p>
           <div
-            class="text-md leading-tight text-grey-dark mt-2 hidden lg:inline-block"
+            class="text-md leading-tight text-grey-dark hidden lg:inline-block my-2"
             style="overflow-wrap: anywhere;"
           >{{ad.description | truncate(300) }}</div>
+
+          <div
+            class="inline-block cursor-pointer text-blue-500 py-1 px-3 rounded-full border"
+            @click="isDescriptionToggled = !isDescriptionToggled"
+          >Read Full Description</div>
         </div>
-      </div>
-    </div>
-    <div class="relative shadow rounded-b-lg" v-on-clickaway="closeDescription">
-      <div
-        @click="isDescriptionToggled = !isDescriptionToggled"
-        :class="{'rounded-b-lg' : !isDescriptionToggled}"
-        class="w-full p-2 text-sm bg-gray-200 hover:bg-gray-300 flex justify-center items-center relative group cursor-pointer select-none"
-      >
-        <span>Read Full Description</span>
-        <svg
-          class="text-gray-500 absolute right-0 mx-2 h-5 w-5 group-hover:text-gray-800 group-focus:text-gray-800 transition ease-in-out duration-150"
-          fill="currentColor"
-          viewBox="0 0 20 20"
+
+        <div
+          v-show="isDescriptionToggled"
+          class="absolute inset-0 m-16"
+          style="position: fixed !important; z-index:100000; height:fit-content"
         >
-          <path
-            fill-rule="evenodd"
-            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-            clip-rule="evenodd"
-          />
-        </svg>
-      </div>
-      <div
-        v-show="isDescriptionToggled"
-        class="text-left absolute shadow-xl select-auto bg-gray-100 rounded-b-lg p-3 w-full"
-        style="top:100%; z-index:1"
-      >
-        <perfect-scrollbar class="max-h-500 overflow-auto">
-          <p class="px-6 py-4 select-auto">{{ad.description}}</p>
-        </perfect-scrollbar>
+          <div class="bg-white max-h-500 p-8 rounded-lg shadow-lg text-left overflow-auto">
+            <p>{{ad.description}}</p>
+          </div>
+        </div>
+        <div
+          v-show="isDescriptionToggled"
+          class="fixed inset-auto w-full h-full bg-black top-0 left-0 z-10 opacity-50 cursor-pointer"
+          style="z-index:99999"
+          @click="isDescriptionToggled = false"
+        ></div>
       </div>
     </div>
   </div>
@@ -141,6 +135,9 @@ export default {
     calcAge: function() {
       let duration = moment.duration(moment().diff(moment(this.ad.date)));
       this.adAge = duration.format("DD:HH:mm");
+    },
+    openDescription: function() {
+      this.isDescriptionToggled = true;
     },
     closeDescription: function() {
       this.isDescriptionToggled = false;

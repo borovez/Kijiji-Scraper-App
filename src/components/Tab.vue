@@ -195,7 +195,7 @@
           </form>
         </div>
       </div>
-        <div class="h-header overflow-auto relative" ref="scroll">
+        <div class="h-header overflow-auto relative min-h-full w-full" ref="scroll">
           <div
             class="bg-white h-16 shadow-sm w-auto border-b-2 text-left text-gray-600 absolute w-full z-10 top-0 overflow-y-hidden sticky flex items-center relative"
           >
@@ -251,7 +251,7 @@
             </ul>
           </div>
 
-          <div class="p-6 pb-32 bg-gray-200">
+          <div class="m-6 mb-32 rounded-lg overflow-hidden">
             <card v-show="ads" v-for="(ad, i) in ads" :key="`ad-${i}`" :ad="ad" />
           </div>
         </div>

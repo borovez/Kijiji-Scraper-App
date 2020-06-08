@@ -11,7 +11,7 @@ This application was built using [mwpenny / kijiji-scraper](https://github.com/m
 ## Features
 
 * Retrieve current ads from Kijiji given keywords and other parameters
-* Multi-tabbed & tagged search queries to have as many searches as you need at one time.
+* Multi-tabbed & tagged search subscriptions to have as many searches as you need at one time.
 * On-the-fly search filtering
 * Search tab draggable sorting
 * Customizable search refresh timer interval

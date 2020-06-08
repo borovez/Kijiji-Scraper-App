@@ -8,6 +8,10 @@ In the future this app will allow for subscribing to kijiji searches with text n
 
 This application was built using [mwpenny / kijiji-scraper](https://github.com/mwpenny/kijiji-scraper)
 
+## Preview
+
+![Preview](https://i.imgur.com/UAWaqU7.jpg)
+
 ## Features
 
 * Retrieve current ads from Kijiji given keywords and other parameters

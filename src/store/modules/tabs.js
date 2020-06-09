@@ -75,40 +75,103 @@ export const actions = {
     commit("ADD_TAB");
   },
   FETCH_ADS({ state, commit }, { tabID }) {
+
     var tab = state.tabs.find(t => t.id === tabID);
     commit("SET_ISLOADING", { tab: tab, isLoading: true });
 
+    tab.keywords.trim().replace(" ", "+");
+    tab.keywords.replace(/\+{2,}/g, '+');
+
+    let keywords = tab.keywords.split(';');
+
+    keywords = keywords.filter(key => {
+      // key.trim();
+      // key.replace(/\s/g, "+");
+      // key.replace(/\+{2,}/g, '+');
+      // // key.replace(/\s/g, '')
+
+      if (key.length > 0) {
+        return key;
+      }
+    })
+
+    tab.keywords = keywords.join(";")
+
     return new Promise((resolve, reject) => {
-      console.log("fetching...")
 
-      let options = {
-        minResults: 60
-      };
-
-      let params = {
-        keywords: tab.keywords, // Seperate keywords with a
-        // adType: "WANTED", // Show ADS that are OFFERING not WANTED
-        locationId: tab.locationId, // Same as kijiji.locations.ONTARIO.OTTAWA_GATINEAU_AREA.OTTAWA
-        categoryId: tab.categoryId, // Same as kijiji.categories.CARS_AND_VEHICLES
-        sortByName: tab.sortByName // Show the cheapest listings first
-      };
+      if (keywords.length == 0) {
+        commit("SET_ISLOADING", { tab: tab, isLoading: false });
+        return reject({ message: 'Missing Keywords!', keyword: 'NoKey' });
+      }
 
 
-      // Scrape using returned promise
-      Kijiji.search(params, options)
-        .then(function (ads) {
-          tab.lastRun = Object.assign({}, tab);
-          commit("SET_ADS", { tab: tab, ads: ads });
-          commit("SET_LASTUPDATE", { tab: tab });
+      Promise.all(keywords.map(async function (keyword) {
+        return new Promise((resolve, reject) => {
+          // new Promise((resolve, reject) => {
+          console.log("fetching...", keyword)
+
+          let options = {
+            minResults: 60
+          };
+
+          let params = {
+            keywords: keyword, // Seperate keywords with a
+            // adType: "WANTED", // Show ADS that are OFFERING not WANTED
+            locationId: tab.locationId, // Same as kijiji.locations.ONTARIO.OTTAWA_GATINEAU_AREA.OTTAWA
+            categoryId: tab.categoryId, // Same as kijiji.categories.CARS_AND_VEHICLES
+            sortByName: tab.sortByName // Show the cheapest listings first
+          };
+          // Scrape using returned promise
+          Kijiji.search(params, options)
+            .then(ads => {
+              resolve(ads);
+            })
+            .catch(e => {
+              reject({ message: e, keyword: keyword });
+            })
+        }).catch(e => e);
+
+      })).then(values => {
+        return Promise.all(values);
+      }).then(ads => {
+        console.log("ads", ads);
+
+        let messages = [];
+
+        ads.filter((a) => {
+          if (Array.isArray(a)) {
+            return a;
+          }
+          messages.push(a)
         })
+
+        let merged = [].concat.apply([], ads);
+
+        merged.filter((item, index) => {
+          return merged.indexOf(i => i.url === item.url) === index;
+        })
+
+        tab.lastRun = Object.assign({}, tab);
+
+        commit("SET_ADS", { tab: tab, ads: merged });
+        commit("SET_LASTUPDATE", { tab: tab });
+
+        resolve(messages);
+      })
         .catch(error => {
+          console.log("error2", error);
           reject(error);
         })
-        .then(res => {
+        .then(() => {
           commit("SET_ISLOADING", { tab: tab, isLoading: false });
-          resolve(res);
-        });
-    });
+        })
+    })
+     .then(() => {
+        commit("SET_ISLOADING", { tab: tab, isLoading: false });
+        console.log("resolved");
+      });
+
+    // return promiseAll;
   }
 }
 
@@ -128,7 +191,7 @@ export const mutations = {
     tab.id = Date.now()
     state.tabs.push(tab)
   },
-  RENAME_TAB(state , { tab, name }) {
+  RENAME_TAB(state, { tab, name }) {
     state.tabs[tab].name = name;
   },
   RENAME_TAB_ID(state, { tabId, name }) {
@@ -150,7 +213,7 @@ export const mutations = {
     //   // state.tabs[tabIndex].sortByName = tab.sortByName;
     // }
   },
-  REMOVE_TAB(state, {tab}) {
+  REMOVE_TAB(state, { tab }) {
     state.tabs = state.tabs.filter(t => t.id !== tab)
   },
   SET_ADS(state, { tab, ads }) {
@@ -159,7 +222,7 @@ export const mutations = {
   SET_LASTUPDATE(state, { tab }) {
     tab.lastUpdate = new Date();
   },
-  SET_ISLOADING(state, {tab, isLoading}) {
+  SET_ISLOADING(state, { tab, isLoading }) {
     tab.isLoading = isLoading;
   }
 };

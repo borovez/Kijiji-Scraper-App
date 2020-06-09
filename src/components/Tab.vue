@@ -195,29 +195,26 @@
           </form>
         </div>
       </div>
-        <div class="h-header overflow-auto relative min-h-full w-full" ref="scroll">
-          <div
-            class="bg-white h-16 shadow-sm w-auto border-b-2 text-left text-gray-600 absolute w-full z-10 top-0 overflow-y-hidden sticky flex items-center relative"
+      <div class="h-header overflow-auto relative min-h-full w-full" ref="scroll">
+        <div
+          class="bg-white h-16 shadow-sm w-auto border-b-2 text-left text-gray-600 absolute w-full z-10 top-0 overflow-y-hidden sticky flex items-center relative"
+        >
+          <button
+            class="md:hidden p-2 border-r-2 sticky bg-white left-0 flex items-center justify-center pl-5 pr-5 h-16"
+            @click="sidebarOpen = !sidebarOpen"
           >
-            <button
-              class="md:hidden p-2 border-r-2 sticky bg-white left-0 flex items-center justify-center pl-5 pr-5 h-16"
-              @click="sidebarOpen = !sidebarOpen"
-            >
-              <svg class="svg-icon h-6 w-6" viewBox="0 0 20 20">
-                <path
-                  fill="none"
-                  d="M3.314,4.8h13.372c0.41,0,0.743-0.333,0.743-0.743c0-0.41-0.333-0.743-0.743-0.743H3.314
+            <svg class="svg-icon h-6 w-6" viewBox="0 0 20 20">
+              <path
+                fill="none"
+                d="M3.314,4.8h13.372c0.41,0,0.743-0.333,0.743-0.743c0-0.41-0.333-0.743-0.743-0.743H3.314
 								c-0.41,0-0.743,0.333-0.743,0.743C2.571,4.467,2.904,4.8,3.314,4.8z M16.686,15.2H3.314c-0.41,0-0.743,0.333-0.743,0.743
 								s0.333,0.743,0.743,0.743h13.372c0.41,0,0.743-0.333,0.743-0.743S17.096,15.2,16.686,15.2z M16.686,9.257H3.314
 								c-0.41,0-0.743,0.333-0.743,0.743s0.333,0.743,0.743,0.743h13.372c0.41,0,0.743-0.333,0.743-0.743S17.096,9.257,16.686,9.257z"
-                />
-              </svg>
-            </button>
-            <ul
-              class="p-3 flex items-center overflow-x-auto"
-              style="min-width:max-content"
-            >
-              <!-- <li>
+              />
+            </svg>
+          </button>
+          <ul class="p-3 flex items-center overflow-x-auto" style="min-width:max-content">
+            <!-- <li>
                 <button class="md:hidden p-2" @click="sidebarOpen = !sidebarOpen">
                   <svg class="svg-icon h-6 w-6" viewBox="0 0 20 20">
                     <path
@@ -229,32 +226,32 @@
                     />
                   </svg>
                 </button>
-              </li>-->
+            </li>-->
+            <li
+              class="mx-1 bg-gray-200 rounded-full px-3 py-1 mr-5 box-content flex-none"
+            >Records: {{ads.length}}</li>
+            <template v-if="tab.lastRun">
+              <li class>Parameters:</li>
               <li
-                class="mx-1 bg-gray-200 rounded-full px-3 py-1 mr-5 box-content flex-none"
-              >Records: {{ads.length}}</li>
-              <template v-if="tab.lastRun">
-                <li class>Parameters:</li>
-                <li
-                  v-show="tab.lastRun.keywords"
-                  class="mx-1 bg-gray-200 rounded-full px-3 py-1 box-content flex-none"
-                >{{tab.lastRun.keywords}}</li>
-                <li
-                  v-show="tab.lastRun.sortByName"
-                  class="mx-1 bg-gray-200 rounded-full px-3 py-1 box-content flex-none"
-                >{{$store.state.tabs.sortBy.find(x=> x.value == tab.lastRun.sortByName).label}}</li>
-                <li
-                  v-show="tab.lastRun.locationId"
-                  class="mx-1 bg-gray-200 rounded-full px-3 py-1 box-content flex-none"
-                >{{$store.state.tabs.locations.find(x=> x.value ==tab.lastRun.locationId).label}}</li>
-              </template>
-            </ul>
-          </div>
-
-          <div class="m-6 mb-32 rounded-lg overflow-hidden">
-            <card v-show="ads" v-for="(ad, i) in ads" :key="`ad-${i}`" :ad="ad" />
-          </div>
+                v-show="tab.lastRun.keywords"
+                class="mx-1 bg-gray-200 rounded-full px-3 py-1 box-content flex-none"
+              >{{tab.lastRun.keywords}}</li>
+              <li
+                v-show="tab.lastRun.sortByName"
+                class="mx-1 bg-gray-200 rounded-full px-3 py-1 box-content flex-none"
+              >{{$store.state.tabs.sortBy.find(x=> x.value == tab.lastRun.sortByName).label}}</li>
+              <li
+                v-show="tab.lastRun.locationId"
+                class="mx-1 bg-gray-200 rounded-full px-3 py-1 box-content flex-none"
+              >{{$store.state.tabs.locations.find(x=> x.value ==tab.lastRun.locationId).label}}</li>
+            </template>
+          </ul>
         </div>
+
+        <div class="m-6 mb-32 rounded-lg overflow-hidden">
+          <card v-show="ads" v-for="(ad, i) in ads" :key="`ad-${i}`" :ad="ad" />
+        </div>
+      </div>
     </div>
     <scrolltop :element="$refs.scroll" />
   </div>
@@ -341,9 +338,7 @@ export default {
       this.calcNextUpdate();
 
       this.nextUpdateInterval = setInterval(() => {
-        if (
-          self.duration && (!self.duration.isValid() || self.duration <= 0)
-        ) {
+        if (self.duration && (!self.duration.isValid() || self.duration <= 0)) {
           self.update();
         } else {
           self.duration = moment.duration(self.duration - 1000, "milliseconds");
@@ -371,29 +366,42 @@ export default {
       }
     },
     ...mapActions("tabs", ["FETCH_ADS"]),
-    update: function() {
+    update() {
       let self = this;
 
       if (this.tab.isLoading) return;
       if (this.tab.keywords == "") return;
 
       this.FETCH_ADS({ tabID: self.tab.id })
-        .then(() => {
+        .then(res => {
+          res?.forEach(r => {
+            self.$toast.open({
+              message: `<div class="text-lg font-medium">${self.tab.name}</div>
+                <div>${r.message}</div>
+                <div class="text-sm">Failure: <em>'${r.keyword}'</em></div>`,
+              type: "error",
+              position: "bottom",
+              duration: 10000
+            });
+          });
+
           if (self.nextUpdateInterval == null) {
             self.setNextUpdateInterval();
-          }else{
+          } else {
             this.calcNextUpdate();
           }
         })
+        .then(e => {
+          console.log("then e", e);
+        })
         .catch(error => {
           self.$toast.open({
-            message: `<div class="text-lg font-medium">${self.tab.name}</div>${error}`,
+            message: `<div class="text-lg font-medium">${self.tab.name}</div>${error.message}`,
             type: "error",
             position: "bottom",
             duration: 10000
           });
-        })
-        .then();
+        });
     }
   },
   beforeDestroy() {

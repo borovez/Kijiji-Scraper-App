@@ -71,7 +71,7 @@
           </a>
           <p class="text-sm leading-tight text-gray-500">{{ad.date | moment("dddd, MMMM Do YYYY")}}</p>
           <div
-            class="text-md leading-tight text-grey-dark hidden lg:inline-block my-2"
+            class="text-md leading-tight text-grey-dark hidden lg:inline-block my-2 w-full"
             style="overflow-wrap: anywhere;"
           >{{ad.description | truncate(300) }}</div>
 

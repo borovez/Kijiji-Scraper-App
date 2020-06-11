@@ -33,6 +33,19 @@ There are many ways to do this, the quickest is to use a browser extension.**
 
 * Latest Version of [Node.js](https://nodejs.org/en/download/) installed on your system
 
+## PUSHBULLET Setup
+
+1. Create a copy of the .env.local.sample, and remove the .sample portion. You should now have a .env.local in your root project directory.
+2. Add your PushBullet Api Key after the equals for the "VUE_APP_PUSH_BULLET_ACCESS_TOKEN" environment variable.
+3. For now, you should recieve notifications on all of your devices connected to the API Token specified, if there are new ads added since the last run, or if the ads have changed price.
+
+The .env.local file should look something like:
+```
+VUE_APP_PUSH_BULLET_ACCESS_TOKEN="YOUR KEY HERE"
+
+VUE_APP_PUSH_BULLET_PHONENUMBER="YOUR PHONE NUMBER HERE"
+```
+
 ## Project setup
 ```
 npm install

@@ -7,12 +7,20 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
+
 import Tabs from "./components/Tabs.vue";
 
 export default {
   name: "App",
   components: {
     Tabs
+  },
+  mounted(){
+    this.GET_DEVICES();
+  },
+  methods: {
+    ...mapActions("pushbullet", ["GET_DEVICES"]),
   }
 };
 </script>

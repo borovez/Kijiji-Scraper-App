@@ -15,7 +15,7 @@
             </svg>
           </button>
           <div class="flex flex-col flex-1 ml-3">
-            <div v-show="tab.lastUpdate" class="text-sm text-left flex-initial">
+            <div v-if="tab.lastUpdate" class="text-sm text-left flex-initial">
               <strong>Last Updated:&nbsp;</strong>
               <em>{{tab.lastUpdate | moment("MMM/DD/YY H:mm")}}</em>
             </div>
@@ -66,7 +66,7 @@
           <div class="border-b-2 w-full my-3"></div>
 
           <!-- @keyup.enter="update" -->
-          <form @change="saveParams" @keyup.enter="update">
+          <form @change="SAVE" @keyup.enter="update">
             <label class="block mb-5" @click="$refs.tabname.focus()">
               <div class="mb-3 text-sm font-bold">Name:</div>
               <input
@@ -125,7 +125,7 @@
                 :reduce="label => label.value"
                 :options="$store.state.tabs.sortBy"
                 :filterable="false"
-                @input="saveParams();"
+                @input="SAVE"
                 :clearable="false"
                 :searchable="false"
                 autocomplete="disabled"
@@ -138,7 +138,7 @@
                 v-model="tab.locationId"
                 class="select"
                 :reduce="label => label.value"
-                @input="saveParams();"
+                @input="SAVE"
                 :options="$store.state.tabs.locations"
                 :clearable="false"
                 :filterable="false"
@@ -155,7 +155,7 @@
                 :reduce="label => label.value"
                 :options="$store.state.tabs.updateIntervals"
                 :filterable="false"
-                @input="saveParams(); calcNextUpdate();"
+                @input="SAVE(); calcNextUpdate();"
                 :clearable="false"
                 :searchable="false"
                 autocomplete="disabled"
@@ -247,8 +247,7 @@
             </template>
           </ul>
         </div>
-
-        <div class="m-6 mb-32 rounded-lg overflow-hidden">
+        <div class="m-6 mb-32 rounded-lg overflow-hidden" v-if="ads">
           <card v-show="ads" v-for="(ad, i) in ads" :key="`ad-${i}`" :ad="ad" />
         </div>
       </div>
@@ -259,7 +258,7 @@
 
 
 <script>
-import { mapActions, mapMutations } from "vuex";
+import { mapActions, mapMutations, mapGetters } from "vuex";
 import Card from "@/components/Card.vue";
 import moment from "moment";
 import Scrolltop from "@/components/Scrolltop.vue";
@@ -288,6 +287,12 @@ export default {
     };
   },
   computed: {
+    ...mapGetters([
+      "tabs/ads"
+    ]),
+    ads() {
+      return this["tabs/ads"](this.tab.id);
+    },
     allLocations() {
       return kijiji.locations;
     },
@@ -308,13 +313,6 @@ export default {
     },
     tab() {
       return this.$store.getters["tabs/tab"](this.id);
-    },
-    ads() {
-      if (this.tab.isWantedVisible) {
-        return this.tab.ads;
-      } else {
-        return this.tab.ads.filter(ad => ad.attributes.type !== "WANTED");
-      }
     }
   },
   mounted() {
@@ -327,17 +325,15 @@ export default {
   },
 
   methods: {
-    ...mapMutations("tabs", ["RENAME_TAB_ID", "SAVE"]),
-    saveParams() {
-      this.tab.editing = false;
-      this.SAVE();
-    },
+    ...mapMutations("tabs", ["SAVE"]),
+    ...mapActions("tabs", ["FETCH_ADS", "SEND_NOTIFICATION", "COMPUTE_DELTA"]),
     setNextUpdateInterval: function() {
       let self = this;
 
       this.calcNextUpdate();
 
       this.nextUpdateInterval = setInterval(() => {
+        if(self.tab.lastUpdate == null) return;
         if (self.duration && (!self.duration.isValid() || self.duration <= 0)) {
           self.update();
         } else {
@@ -346,7 +342,7 @@ export default {
       }, 1000);
     },
     calcNextUpdate: function() {
-      if (this.tab) {
+      if (this.tab && this.tab.lastUpdate) {
         // make it a moment object again
         this.event = moment(this.tab.lastUpdate).add(
           this.tab.updateInterval,
@@ -365,7 +361,6 @@ export default {
         this.duration = 0;
       }
     },
-    ...mapActions("tabs", ["FETCH_ADS"]),
     update() {
       let self = this;
 
@@ -391,12 +386,11 @@ export default {
             this.calcNextUpdate();
           }
         })
-        .then(e => {
-          console.log("then e", e);
-        })
         .catch(error => {
           self.$toast.open({
-            message: `<div class="text-lg font-medium">${self.tab.name}</div>${error.message}`,
+            message: `<div class="text-lg font-medium">${self.tab.name}</div>
+                <div>${error.message}</div>
+                <div class="text-sm">Failure: <em>'${error.keyword}'</em></div>`,
             type: "error",
             position: "bottom",
             duration: 10000

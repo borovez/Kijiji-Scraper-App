@@ -52,20 +52,13 @@ export const getters = {
   tab: state => id => {
     return state.tabs.find(tab => tab.id === id)
   },
-  ads: state => id => {
-    return state.tabs.find(tab => tab.id === id).ads
-  },
-};
+  ads: (state, getters) => id => {
+    let tab = getters.tab(id);
 
-export const setters = {
-  tabs: state => {
-    return state.tabs
-  },
-  tab: state => id => {
-    return state.tabs.find(tab => tab.id === id)
-  },
-  ads: state => id => {
-    return state.tabs.find(tab => tab.id === id).ads
+    if (!tab.isWantedVisible) {
+      return tab.ads.filter(ad => ad.attributes.type !== "WANTED");
+    }
+    return tab.ads;
   },
 };
 
@@ -74,7 +67,7 @@ export const actions = {
   NEW_TAB({ commit }) {
     commit("ADD_TAB");
   },
-  FETCH_ADS({ state, commit }, { tabID }) {
+  FETCH_ADS({ state, commit, dispatch }, { tabID }) {
 
     var tab = state.tabs.find(t => t.id === tabID);
     commit("SET_ISLOADING", { tab: tab, isLoading: true });
@@ -85,11 +78,6 @@ export const actions = {
     let keywords = tab.keywords.split(';');
 
     keywords = keywords.filter(key => {
-      // key.trim();
-      // key.replace(/\s/g, "+");
-      // key.replace(/\+{2,}/g, '+');
-      // // key.replace(/\s/g, '')
-
       if (key.length > 0) {
         return key;
       }
@@ -104,10 +92,8 @@ export const actions = {
         return reject({ message: 'Missing Keywords!', keyword: 'NoKey' });
       }
 
-
       Promise.all(keywords.map(async function (keyword) {
         return new Promise((resolve, reject) => {
-          // new Promise((resolve, reject) => {
           console.log("fetching...", keyword)
 
           let options = {
@@ -127,22 +113,27 @@ export const actions = {
               resolve(ads);
             })
             .catch(e => {
-              reject({ message: e, keyword: keyword });
+              reject({ message: e.message, keyword: keyword });
             })
-        }).catch(e => e);
-
+        })
+          .catch(e => {
+            reject({ message: e.message, keyword: keyword });
+          })
       })).then(values => {
         return Promise.all(values);
       }).then(ads => {
-        console.log("ads", ads);
-
         let messages = [];
 
-        ads.filter((a) => {
-          if (Array.isArray(a)) {
-            return a;
+        ads = ads.filter((a) => {
+          if (a === undefined) {
+            return false;
           }
-          messages.push(a)
+          if ('message' in a) {
+            messages.push(a)
+            return false;
+          } else {
+            return true;
+          }
         })
 
         let merged = [].concat.apply([], ads);
@@ -151,28 +142,70 @@ export const actions = {
           return merged.indexOf(i => i.url === item.url) === index;
         })
 
-        tab.lastRun = Object.assign({}, tab);
+        if (merged.length) {
+          dispatch("COMPUTE_DELTA", tab);
 
-        commit("SET_ADS", { tab: tab, ads: merged });
-        commit("SET_LASTUPDATE", { tab: tab });
+          tab.lastRun = Object.assign({}, tab);
+
+          commit("SET_ADS", { tab: tab, ads: merged });
+          commit("SET_LASTUPDATE", { tab: tab });
+        }
 
         resolve(messages);
       })
         .catch(error => {
-          console.log("error2", error);
           reject(error);
         })
-        .then(() => {
-          commit("SET_ISLOADING", { tab: tab, isLoading: false });
-        })
     })
-     .then(() => {
+      .then(() => {
         commit("SET_ISLOADING", { tab: tab, isLoading: false });
-        console.log("resolved");
-      });
+      })
+      .catch((e) => {
+        commit("SET_ISLOADING", { tab: tab, isLoading: false });
+        return [{ message: e.message, keyword: keywords.join()}];
+      })
+  },
+  COMPUTE_DELTA({state}, tab) {
+    console.log("computing delta...", tab.ads, tab.lastRun.ads, state);
 
-    // return promiseAll;
-  }
+    let tempAds = Object.assign([], tab.ads);
+    let deltaAds = [];
+
+    if (tab.lastRun.keywords != tab.keywords) return;
+
+    if (tab.lastRun.ads.length > 0) {
+
+      tempAds.filter((ad) => {
+        let index = tab.lastRun.ads.findIndex(lad => {
+          return lad.url == ad.url
+        })
+
+        let deltaAd = {
+          title: ad.title,
+          url: ad.url,
+          image: ad.image,
+          date: ad.date,
+          description: ad.description,
+          price: ad.attributes.price,
+        }
+
+        if (index < 0) {
+          deltaAds.push(deltaAd)
+          return true;
+        } else if (index >= 0 && tab.lastRun.ads[index].attributes.price != ad.attributes.price) {
+          deltaAd.priceDiff = ad.attributes.price - tab.lastRun.ads[index].attributes.price;
+          deltaAds.push(deltaAd)
+          return true;
+        }
+
+        return false;
+      })
+    }
+
+    // dispatch("NOTIFY", deltaAds)
+    console.log("DELTA", deltaAds);
+    this.dispatch('pushbullet/NOTIFY_ADS', deltaAds);
+  },
 }
 
 // mutations
@@ -200,19 +233,6 @@ export const mutations = {
       state.tabs[tabIndex].name = name;
     }
   },
-  SAVE() {
-
-  },
-  SET_PARAMS() {
-    // let tabIndex = state.tabs.findIndex(t => t.id === tabId);
-    // if (tabIndex >= 0) {
-    //   state.tabs[tabIndex].lastRun = Object.assign({}, state.tabs[tabIndex]);
-    //   console.log(tab);
-    //   // state.tabs[tabIndex].name = tab.name;
-    //   // state.tabs[tabIndex].keywords = tab.keywords;
-    //   // state.tabs[tabIndex].sortByName = tab.sortByName;
-    // }
-  },
   REMOVE_TAB(state, { tab }) {
     state.tabs = state.tabs.filter(t => t.id !== tab)
   },
@@ -224,6 +244,9 @@ export const mutations = {
   },
   SET_ISLOADING(state, { tab, isLoading }) {
     tab.isLoading = isLoading;
+  },
+  SAVE() {
+
   }
 };
 

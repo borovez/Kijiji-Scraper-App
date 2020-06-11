@@ -4,7 +4,6 @@ import VuexPersistence from 'vuex-persist'
 
 Vue.use(Vuex);
 
-
 // Load store modules dynamically.
 const requireContext = require.context('./modules', false, /.*\.js$/)
 
@@ -18,7 +17,6 @@ const modules = requireContext.keys()
     }
     return { ...modules, [name]: module }
   }, {})
-
 
 const store = new Vuex.Store({
   modules,

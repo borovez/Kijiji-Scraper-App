@@ -1,5 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
+import axios from 'axios'
+import VueAxios from 'vue-axios'
 import '@/assets/css/main.css'
 import VueEllipsis from 'vue-ellipsis'
 import 'es6-promise/auto'
@@ -15,16 +17,16 @@ import 'vue-toast-notification/dist/theme-default.css';
 
 vSelect.props.components.default = () => ({ OpenIndicator });
 
-
 Vue.config.productionTip = false
+
+Vue.use(VueAxios, axios)
 Vue.use(VueEllipsis)
 Vue.use(require('vue-moment'));
 Vue.use(PerfectScrollbar)
 Vue.use(VTooltip)
-Vue.component('v-select', vSelect)
-
 Vue.use(VueToast);
 
+Vue.component('v-select', vSelect)
 
 Vue.filter('truncate', function (text, stop, clamp) {
   return text.slice(0, stop) + (stop < text.length ? clamp || '...' : '')

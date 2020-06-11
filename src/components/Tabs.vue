@@ -53,9 +53,10 @@
               class="inline-block p-4 cursor-pointer"
               @click="selectTab(tab.id)"
             >{{ tab.name | truncate(8)}}</a>
+
             <div
               class="hidden group-hover:inline-block hover:bg-gray-400 bg-gray-200 absolute p-2 left-0 cursor-pointer rounded-full"
-              @click="editTab(tab, i)"
+              @click="editTab(i)"
             >
               <svg class="svg-icon w-4 h-4" viewBox="0 0 20 20">
                 <path
@@ -77,21 +78,21 @@
                 />
               </svg>
             </div>
-          </div>
-          <div
-            class="flex justify-center items-center absolute left-10"
-            :class="{ 'block': tab.editing, 'hidden': !tab.editing }"
-          >
-            <input
-              type="text"
-              class="w-full h-5 outline-none border-2 py-4 px-2 mr-3"
-              :id="'edit-tab-'+i"
-              :value="tab.name"
-              @blur="saveTab(tab, i)"
-              @model="editName"
-              @keyup.enter="saveTab(tab, i)"
-              ref="tabInput"
-            />
+            <div
+              class="flex justify-center items-center absolute left-10"
+              :class="{ 'block': editingIndex == i, 'hidden': editingIndex != i }"
+            >
+              <form @change="SAVE">
+                <input
+                  type="text"
+                  class="w-full h-5 outline-none border-2 py-4 px-2 mr-3"
+                  v-model="tab.name"
+                  @blur="editingIndex = undefined"
+                  @keyup.enter="editingIndex = undefined"
+                  ref="tabinput"
+                />
+              </form>
+            </div>
           </div>
         </li>
         <li
@@ -163,8 +164,7 @@ export default {
   },
   data() {
     return {
-      editName: "",
-      input: null
+      editingIndex: undefined
     };
   },
   computed: {
@@ -179,15 +179,17 @@ export default {
     ...mapState({
       // tabs: state => state.tabs.tabs,
       tabTooltip: function() {
-        return tab =>
-          `<div class="text-bold text-lg">${
-            tab.name
-          }</div><div class="text-sm">Last Update: ${this.$options.filters.moment(
-            tab.lastUpdate,
-            "MMM/DD/YY H:mm"
-          )}</div>`;
+        return tab => {
+          let tooltip = `<div class="text-bold text-lg">${tab.name}</div>`;
+          if (tab.lastUpdate) {
+            tooltip += `<div class="text-sm">Last Update: ${this.$options.filters.moment(
+              tab.lastUpdate,
+              "MMM/DD/YY H:mm"
+            )}</div>`;
+          }
 
-        // this.$options.filters.moment(tab.lastUpdate, "dddd, MMMM Do YYYY, h:mm:ss a");
+          return tooltip
+        };
       }
     })
   },
@@ -207,24 +209,24 @@ export default {
     selectTab(id) {
       this.SELECT_TAB({ id: id });
     },
-    editTab(tab, index) {
+    editTab(index) {
       let self = this;
-      tab.editing = true;
+      this.editingIndex = index;
+
       this.$nextTick(() => {
-        self.$refs.tabInput[index].focus();
-        self.$refs.tabInput[index].select();
+        self.$refs.tabinput[index].focus();
+        self.$refs.tabinput[index].select();
       });
     },
     addTab() {
       let self = this;
 
       this.ADD_TAB({
-        name: 'New Tab',
+        name: "New Tab",
         selected: self.tabs.length == 0,
         isActive: self.tabs.length == 0,
         isLoading: false,
-        editing: false,
-        keywords: '',
+        keywords: "",
         locationId: 1700272,
         categoryId: 0,
         sortByName: "dateDsc",
@@ -242,10 +244,6 @@ export default {
         this.SELECT_TAB({ id: this.tabs[i + 1].id });
       }
       this.REMOVE_TAB({ tab: tab });
-    },
-    saveTab(tab, index) {
-      tab.editing = false;
-      this.RENAME_TAB({ tab: index, name: this.$refs.tabInput[index].value });
     }
   }
 };

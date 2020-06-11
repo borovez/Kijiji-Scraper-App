@@ -30,6 +30,7 @@
         <div class="text-left sm:flex-grow">
           <div class="relative flex flex-row min-w-full justify-between">
             <div>
+              <span v-if="ad.new">[NEW]</span>
               <a :href="ad.url" target="_blank" class="text-xl leading-tight">{{ad.title}}</a>
             </div>
           </div>

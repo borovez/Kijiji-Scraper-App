@@ -23,7 +23,8 @@ export default {
   data() {
     return {
       scrollPosition: 0,
-      isVisible: false
+      isVisible: false,
+      listener: null,
     };
   },
   mounted() {
@@ -35,12 +36,8 @@ export default {
       } else {
         self.isVisible = true;
       }
-      self.element.addEventListener("scroll", self.handleScroll);
+      this.listener = self.element.addEventListener("scroll", self.handleScroll);
     })
-
-  },
-  destroyed() {
-    this.element.removeEventListener("scroll", this.handleScroll);
   },
   methods: {
     handleScroll: function() {

@@ -46,9 +46,11 @@ export const actions = {
 
     ads.forEach((ad, i) => {
 
-      let body = Vue.filter('truncate')(ad.description, 40).replace(/(\r\n|\n|\r)/gm, "");
+      let body = Vue.filter('truncate')(ad.description, 40).replace(/(\r\n|\n|\r)/gm, ""); //truncate 40 chars, and remove new lines.
+      body = body.replace(/\s+/g, ' '); // remove extra spaces
       body += `\n$${ad.price}`;
-      if ("priceDiff" in ad) {
+
+      if ("priceDiff" in ad) { //append price difference if exists
         body += ` -> $${ad.priceDiff}`;
       }
       setTimeout(() => {

@@ -106,13 +106,15 @@ export const actions = {
             locationId: tab.locationId, // Same as kijiji.locations.ONTARIO.OTTAWA_GATINEAU_AREA.OTTAWA
             categoryId: tab.categoryId, // Same as kijiji.categories.CARS_AND_VEHICLES
             sortByName: tab.sortByName // Show the cheapest listings first
-          };
+					};
+					console.log(params,options)
           // Scrape using returned promise
           Kijiji.search(params, options)
             .then(ads => {
               resolve(ads);
             })
-            .catch(e => {
+						.catch(e => {
+							console.log('here', e);
               reject({ message: e.message, keyword: keyword });
             })
         })

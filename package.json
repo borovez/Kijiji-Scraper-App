@@ -15,7 +15,7 @@
     "flatted": "^3.0.2",
     "js-cookie": "^2.2.1",
     "kijiji-scraper": "^6.1.0",
-    "moment": "^2.26.0",
+    "moment": "^2.29.4",
     "moment-duration-format": "^2.3.2",
     "postcss-nested": "^4.2.1",
     "v-tooltip": "^2.0.3",
